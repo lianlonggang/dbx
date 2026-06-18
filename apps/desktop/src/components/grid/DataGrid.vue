@@ -214,6 +214,12 @@ console.info("[DBX][DataGrid:setup]", {
   loading: props.loading,
 });
 
+const transposeRowIndex = ref<number | null>(null);
+const showTranspose = ref(false);
+const multiRowTranspose = ref(false);
+const preserveTransposeOnNextResult = ref(false);
+const autoTransposedForResult = ref(false);
+
 watch(
   () => props.result,
   (result) => {
@@ -227,6 +233,17 @@ watch(
       loading: props.loading,
       elapsedSinceSetup: dataGridElapsed(),
     });
+    // Auto-transpose when a new result has exactly 1 row with multiple columns.
+    if (result.rows.length === 1 && result.columns.length > 1 && !preserveTransposeOnNextResult.value) {
+      autoTransposedForResult.value = true;
+      nextTick(() => {
+        showTranspose.value = true;
+        transposeRowIndex.value = 0;
+      });
+    } else {
+      autoTransposedForResult.value = false;
+    }
+
     nextTick(() => {
       console.info("[DBX][DataGrid:result:nextTick]", {
         traceId: dataGridTraceId,
@@ -367,10 +384,6 @@ const sideGeometryCanvas = ref<HTMLCanvasElement | null>(null);
 const dialogGeometryCanvas = ref<HTMLCanvasElement | null>(null);
 const previewDialogOpen = ref(false);
 const previewDialogConfig = shallowRef<{ component: any; props: Record<string, any> } | null>(null);
-const transposeRowIndex = ref<number | null>(null);
-const showTranspose = ref(false);
-const multiRowTranspose = ref(false);
-const preserveTransposeOnNextResult = ref(false);
 const transposeScrollRef = ref<HTMLElement | { $el?: HTMLElement }>();
 const transposeScrollLeft = ref(0);
 const transposeViewportWidth = ref(0);
@@ -5230,6 +5243,7 @@ function currentTransposeViewportRowIndex(): number {
 }
 
 function closeTranspose(scrollToCurrentRecord = true) {
+  autoTransposedForResult.value = false;
   const rowIndex = currentTransposeViewportRowIndex();
   showTranspose.value = false;
   transposeRowIndex.value = null;
@@ -5260,6 +5274,7 @@ function openContextTranspose() {
 }
 
 function toggleTranspose(rowIndex: number) {
+  autoTransposedForResult.value = false;
   const next = nextTransposeState(showTranspose.value, transposeRowIndex.value, rowIndex);
   transposeRowIndex.value = next.transposeRowIndex;
   showTranspose.value = next.showTranspose;
@@ -6676,8 +6691,8 @@ const gridContextMenuItems = computed<ContextMenuItem[]>(() => {
             </div>
             <template v-else>
               <!-- Sticky header -->
-              <div ref="headerRef" class="shrink-0 bg-[rgb(239_239_239)] dark:bg-muted/60 z-10 w-(--header-total-w) border-y border-border overflow-hidden">
-                <div class="flex text-xs font-semibold text-foreground">
+              <div ref="headerRef" class="shrink-0 bg-[rgb(239_239_239)] dark:bg-muted/60 z-10 w-full border-y border-border overflow-hidden">
+                <div class="flex w-(--header-total-w) text-xs font-semibold text-foreground">
                   <div
                     class="shrink-0 px-2 py-1.5 border-r w-(--row-num-w) border-border text-center text-muted-foreground select-none cursor-default hover:bg-gray-200 dark:hover:bg-gray-800 sticky left-0 z-20 bg-[rgb(239_239_239)] dark:bg-muted"
                     :class="{ '!bg-gray-300 dark:!bg-gray-900 outline outline-primary -outline-offset-1': isSelectingAll }"
