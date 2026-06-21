@@ -832,6 +832,14 @@ async function clearInMemoryHistory() {
   commandHistory.value = [];
 }
 
+function onCommandAreaClick() {
+  // 只有在没有选中文本时才聚焦输入框，避免清除用户的文本选择
+  const selection = window.getSelection();
+  if (!selection || selection.toString().length === 0) {
+    getCommandInput()?.focus();
+  }
+}
+
 onMounted(() => {
   resumeRedisBrowserBackgroundWork();
   void loadKeys();
@@ -980,8 +988,8 @@ defineExpose({ focusSearch });
             </TabsContent>
 
             <TabsContent value="command" class="m-0 min-h-0 flex-1 flex flex-col">
-              <div class="dbx-editor-font-family relative flex min-h-0 flex-1 flex-col bg-[#171b21] text-[13px] leading-5 text-slate-200" @click="getCommandInput()?.focus()">
-                <div ref="commandTerminalRef" class="min-h-0 flex-1 overflow-auto px-4 pb-3 pt-4">
+              <div class="dbx-editor-font-family relative flex min-h-0 flex-1 flex-col bg-[#171b21] text-[13px] leading-5 text-slate-200" @click="onCommandAreaClick">
+                <div ref="commandTerminalRef" class="redis-command-terminal min-h-0 flex-1 overflow-auto px-4 pb-3 pt-4">
                   <div class="mb-4 text-slate-400">
                     <span class="text-slate-200">{{ t("redis.commandWelcome") }}</span>
                   </div>
@@ -1156,5 +1164,10 @@ defineExpose({ focusSearch });
 
 .redis-workspace-splitpanes :deep(.splitpanes__splitter:hover) {
   background: var(--primary) !important;
+}
+
+.redis-command-terminal {
+  user-select: text;
+  -webkit-user-select: text;
 }
 </style>
