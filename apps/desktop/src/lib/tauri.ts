@@ -275,7 +275,6 @@ export interface AiCompletionRequest {
   messages: AiMessage[];
   taskContract?: AiTaskContract;
   maxTokens?: number;
-  temperature?: number;
 }
 
 export interface AiModelInfo {

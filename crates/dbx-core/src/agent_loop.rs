@@ -82,7 +82,6 @@ pub async fn run_agent_loop(
     on_event: impl Fn(AgentEvent) + Send + Sync + Clone + 'static,
     cancelled: &Notify,
     max_tokens: Option<u32>,
-    temperature: Option<f32>,
     task_contract: Option<&AiTaskContract>,
     is_agent_mode: bool,
 ) -> Result<String, String> {
@@ -124,7 +123,6 @@ pub async fn run_agent_loop(
             on_event,
             cancelled,
             max_tokens,
-            temperature,
             task_contract,
         )
         .await;
@@ -181,7 +179,6 @@ pub async fn run_agent_loop(
                 &conversation_messages,
                 &tools,
                 max_tokens,
-                temperature,
                 task_contract.clone(),
             );
 
@@ -434,7 +431,6 @@ fn build_tool_request(
     messages: &[AiMessage],
     _tools: &[ToolDefinition], // Tools are injected in ai::stream_with_tools, not via AiCompletionRequest.
     max_tokens: Option<u32>,
-    temperature: Option<f32>,
     task_contract: Option<AiTaskContract>,
 ) -> AiCompletionRequest {
     // Note: tools are passed via the body, not via AiCompletionRequest.
@@ -445,7 +441,6 @@ fn build_tool_request(
         messages: messages.to_vec(),
         task_contract,
         max_tokens: max_tokens.or(Some(4096)),
-        temperature: temperature.or(Some(0.2)),
     }
 }
 
@@ -652,7 +647,6 @@ async fn run_agent_loop_text_only(
     on_event: impl Fn(AgentEvent) + Send + Sync + 'static,
     _cancelled: &Notify,
     max_tokens: Option<u32>,
-    temperature: Option<f32>,
     task_contract: Option<&AiTaskContract>,
 ) -> Result<String, String> {
     // Build a schema-enriched system prompt so the LLM can answer schema questions
@@ -665,7 +659,6 @@ async fn run_agent_loop_text_only(
         messages: messages.to_vec(),
         task_contract: task_contract.cloned(),
         max_tokens: max_tokens.or(Some(4096)),
-        temperature: temperature.or(Some(0.2)),
     };
 
     for attempt in 0..=MAX_CONTRACT_REPAIR_ATTEMPTS {
@@ -898,7 +891,6 @@ async fn maybe_compact(
         }],
         task_contract: None,
         max_tokens: Some(1024),
-        temperature: Some(0.1),
     };
 
     let summary = match cancelled.notified().now_or_never() {
