@@ -21,6 +21,7 @@ import { CONNECTION_ATTEMPT_CANCELLED_MESSAGE, useConnectionStore } from "@/stor
 import { useTunnelProfileStore } from "@/stores/tunnelProfileStore";
 import { detachTunnelProfileLayer, tunnelProfileReferenceLayer, tunnelProfileSummary } from "@/lib/connection/tunnelProfiles";
 import { applySshConfigHostAliasPrefill as prefillSshConfigHostAlias } from "@/lib/connection/sshConfigHosts";
+import { connectionEditDraftSyncAction } from "./connectionEditDraftSync";
 import { REDIS_SCAN_PAGE_SIZE_DEFAULT, REDIS_SCAN_PAGE_SIZE_MIN, REDIS_SCAN_PAGE_SIZE_MAX, REDIS_SCAN_PAGE_SIZE_OPTIONS } from "@/lib/redis/redisKeyPattern";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useToast } from "@/composables/useToast";
@@ -1529,8 +1530,9 @@ function switchGbaseProfile(profile: "gbase8a" | "gbase8s") {
 watch(
   [() => props.editConfig, open],
   ([config, isOpen]) => {
-    if (!isOpen) return;
-    if (config) {
+    const syncAction = connectionEditDraftSyncAction(config?.id ?? null, isOpen, editingId.value);
+    if (syncAction === "preserve") return;
+    if (syncAction === "hydrate" && config) {
       clearSavedDatabaseInfo();
       const legacyConfig = config as LegacyConnectionConfig;
       const profile = profileForConfig(config);
