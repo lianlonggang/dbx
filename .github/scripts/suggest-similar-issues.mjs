@@ -446,22 +446,10 @@ function hasChinese(value) {
   return /\p{Script=Han}/u.test(String(value || ""));
 }
 
-function safeTitle(value) {
-  return String(value || "")
-    .replace(/[\r\n]+/gu, " ")
-    .replace(/([\\`*_{}\[\]()<>#+.!|~-])/gu, "\\$1")
-    .trim();
-}
-
 export function formatComment(issue, rankedCandidates) {
   const chinese = hasChinese(`${issue.title}\n${issue.body}`);
-  const lines = rankedCandidates.map(({ candidate }) => {
-    const state = String(candidate.state || "").toLowerCase() === "closed"
-      ? chinese ? "已关闭" : "Closed"
-      : chinese ? "进行中" : "Open";
-    const stateSuffix = chinese ? `（${state}）` : `(${state})`;
-    return `- #${candidate.number} — ${safeTitle(candidate.title)} ${stateSuffix}`;
-  });
+  // GitHub expands issue references into links containing the title and number.
+  const lines = rankedCandidates.map(({ candidate }) => `- #${candidate.number}`);
 
   if (chinese) {
     return `${COMMENT_MARKER}\n以下 Issue 可能与当前问题相关：\n\n${lines.join("\n")}\n\n这些结果由机器人自动检索，尚未确认重复。如属于同一问题，建议在已有 Issue 中补充信息。`;

@@ -212,16 +212,15 @@ test("ranks candidates, excludes the current issue and limits output", () => {
   assert.deepEqual(new Set(ranked.map(({ candidate }) => candidate.number)), new Set([82, 83]));
 });
 
-test("formats a cautious localized comment and escapes titles", () => {
+test("formats a cautious localized comment with concise issue references", () => {
   const comment = formatComment(baseIssue, [
     { candidate: { number: 82, title: "[Bug] [快捷键](https://example.com)", state: "closed" } },
   ]);
 
   assert.match(comment, /^<!-- dbx-similar-issues -->/u);
-  assert.match(comment, /#82/u);
+  assert.match(comment, /\n- #82\n/u);
   assert.match(comment, /尚未确认重复/u);
-  assert.match(comment, /已关闭/u);
-  assert.doesNotMatch(comment, /\]\(https:/u);
+  assert.doesNotMatch(comment, /快捷键|已关闭|https:/u);
 });
 
 test("run searches and posts one idempotent comment", async (t) => {
