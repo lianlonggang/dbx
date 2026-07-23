@@ -1336,13 +1336,15 @@ export default {
     back: "Back",
   },
   quickOpen: {
-    placeholder: "Search connections, databases, tables, and other objects...",
+    placeholder: "Search connections, databases, tables, SQL files, and other objects...",
     emptyPlaceholder: "Start typing to search",
     noResults: "No results found",
     results: "results",
     navigate: "Navigate",
     select: "Select",
     close: "Close",
+    sqlFile: "SQL File",
+    sqlLibraryFile: "SQL Library",
   },
   explain: {
     title: "Explain Plan",
